@@ -1,0 +1,680 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>首爾銀杏家族行</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style id="css">
+/* Layout: paper-white phone app — sticky top menu, four views (home, plan, food, list); hairlines and soft fills, no heavy frames */
+:root{
+  --paper:#FFFCF6; --ink:#3E3A39; --muted:#857F7B; --grey:#F1EEE8; --grey-2:#E7E3DC; --line:#E8E3DA;
+  --orange:#FF5809; --orange-soft:#FFEDE3; --white:#FFFFFF;
+  --walk:#2E8F63; --walk-s:#E3F2EA; --taxi:#A56B00; --taxi-s:#FCF0D2; --bus:#2F63C4; --bus-s:#E4ECFA;
+  --cable:#7A4FC4; --cable-s:#EEE7FA; --car:#55606C; --car-s:#E9ECEF; --plane:#127FAD; --plane-s:#E0F1F8;
+  --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r-lg:20px; --r-md:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:8px}
+.wrap{max-width:640px;margin:0 auto}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:rgba(255,252,246,.96);
+  margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  border-bottom:1px solid var(--line)}
+.topbar .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;height:52px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.04em;white-space:nowrap}
+.brand i{font-style:normal;color:var(--orange)}
+.tabs{display:flex;gap:2px;margin-left:auto;height:100%}
+.tabs button{border:0;background:none;padding:0 10px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;position:relative;height:100%}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:700}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--orange)}
+@media (max-width:380px){.brand{display:none}.tabs{margin-left:0;width:100%;justify-content:space-between}}
+
+h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
+.box{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg)}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--muted);font-weight:500}
+.sec-title{display:flex;align-items:baseline;gap:10px;margin:28px 0 12px}
+.sec-title h2{font-size:18px;font-weight:700}
+.sec-title .count{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.hero{margin-top:16px;overflow:hidden}
+.hero svg{display:block;width:100%;height:auto;background:var(--grey)}
+.hero .txt{padding:18px 18px 20px;display:grid;gap:6px}
+.hero h1{font-size:28px;font-weight:900;letter-spacing:.02em}
+.hero .crew{color:var(--muted);font-size:14px}
+.cd{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.cd div{background:var(--grey);border-radius:var(--r-md);padding:10px 4px;text-align:center}
+.cd b{display:block;font-size:28px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.cd div:first-child b{color:var(--orange)}
+.cd span{font-size:12px;color:var(--muted)}
+.cd-note{font-size:13px;color:var(--muted)}
+
+.flights{display:grid;gap:12px}
+.flight{display:grid;gap:12px;padding:16px}
+.flight .head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.flight .no{font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.flight .date{color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+.route{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.route .pt b{display:block;font-size:28px;font-weight:700;line-height:1.1;letter-spacing:.04em}
+.route .pt span{font-size:12px;color:var(--muted)}
+.route .pt.r{text-align:right}
+.route .mid{display:grid;justify-items:center;font-size:12px;color:var(--muted)}
+.route .mid svg{width:56px;height:14px}
+.times{display:flex;justify-content:space-between;border-top:1px dashed var(--grey-2);padding-top:10px;font-variant-numeric:tabular-nums}
+.times b{font-size:20px;font-weight:700}
+.times .warn{color:var(--orange)}
+
+.days{display:grid;background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.dayrow{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border:0;border-top:1px solid var(--line);background:none;cursor:pointer;text-align:left;width:100%}
+.dayrow:first-child{border-top:0}
+.dayrow .dt{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px;line-height:1.2}
+.dayrow .dt small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.dayrow .tt{min-width:0}
+.dayrow .arrow{color:var(--muted);transition:transform .15s,color .15s}
+.dayrow:hover .arrow{color:var(--orange);transform:translateX(3px)}
+
+.datebar{display:flex;gap:8px;overflow-x:auto;padding-block:14px 4px;scrollbar-width:none;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.datebar::-webkit-scrollbar{display:none}
+.date{flex:none;border:0;background:var(--grey);border-radius:var(--r-md);padding:7px 12px;min-width:62px;text-align:center;cursor:pointer;transition:background .15s,color .15s}
+.date b{display:block;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.date span{display:block;font-size:12px;color:var(--muted)}
+.date[aria-pressed="true"]{background:var(--orange);color:var(--white)}
+.date[aria-pressed="true"] span{color:var(--white);opacity:.85}
+.dayhead{margin-top:16px;display:grid;gap:4px}
+.dayhead h2{font-size:22px;font-weight:900}
+.dayhead .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted)}
+.dayhead .meta b{color:var(--orange);font-weight:700}
+
+/* leaflet */
+ .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; } .leaflet-container { overflow: hidden; } .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow { -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-user-drag: none; } .leaflet-tile::selection { background: transparent; } .leaflet-safari .leaflet-tile { image-rendering: -webkit-optimize-contrast; } .leaflet-safari .leaflet-tile-container { width: 1600px; height: 1600px; -webkit-transform-origin: 0 0; } .leaflet-marker-icon, .leaflet-marker-shadow { display: block; } .leaflet-container .leaflet-overlay-pane svg { max-width: none !important; max-height: none !important; } .leaflet-container .leaflet-marker-pane img, .leaflet-container .leaflet-shadow-pane img, .leaflet-container .leaflet-tile-pane img, .leaflet-container img.leaflet-image-layer, .leaflet-container .leaflet-tile { max-width: none !important; max-height: none !important; width: auto; padding: 0; } .leaflet-container img.leaflet-tile { mix-blend-mode: plus-lighter; } .leaflet-container.leaflet-touch-zoom { -ms-touch-action: pan-x pan-y; touch-action: pan-x pan-y; } .leaflet-container.leaflet-touch-drag { -ms-touch-action: pinch-zoom; touch-action: none; touch-action: pinch-zoom; } .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom { -ms-touch-action: none; touch-action: none; } .leaflet-container { -webkit-tap-highlight-color: transparent; } .leaflet-container a { -webkit-tap-highlight-color: rgba(51, 181, 229, 0.4); } .leaflet-tile { filter: inherit; visibility: hidden; } .leaflet-tile-loaded { visibility: inherit; } .leaflet-zoom-box { width: 0; height: 0; -moz-box-sizing: border-box; box-sizing: border-box; z-index: 800; } .leaflet-overlay-pane svg { -moz-user-select: none; } .leaflet-pane { z-index: 400; } .leaflet-tile-pane { z-index: 200; } .leaflet-overlay-pane { z-index: 400; } .leaflet-shadow-pane { z-index: 500; } .leaflet-marker-pane { z-index: 600; } .leaflet-tooltip-pane { z-index: 650; } .leaflet-popup-pane { z-index: 700; } .leaflet-map-pane canvas { z-index: 100; } .leaflet-map-pane svg { z-index: 200; } .leaflet-vml-shape { width: 1px; height: 1px; } .lvml { behavior: url(#default#VML); display: inline-block; position: absolute; } .leaflet-control { position: relative; z-index: 800; pointer-events: visiblePainted; pointer-events: auto; } .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; } .leaflet-top { top: 0; } .leaflet-right { right: 0; } .leaflet-bottom { bottom: 0; } .leaflet-left { left: 0; } .leaflet-control { float: left; clear: both; } .leaflet-right .leaflet-control { float: right; } .leaflet-top .leaflet-control { margin-top: 10px; } .leaflet-bottom .leaflet-control { margin-bottom: 10px; } .leaflet-left .leaflet-control { margin-left: 10px; } .leaflet-right .leaflet-control { margin-right: 10px; } .leaflet-fade-anim .leaflet-popup { opacity: 0; -webkit-transition: opacity 0.2s linear; -moz-transition: opacity 0.2s linear; transition: opacity 0.2s linear; } .leaflet-fade-anim .leaflet-map-pane .leaflet-popup { opacity: 1; } .leaflet-zoom-animated { -webkit-transform-origin: 0 0; -ms-transform-origin: 0 0; transform-origin: 0 0; } svg.leaflet-zoom-animated { will-change: transform; } .leaflet-zoom-anim .leaflet-zoom-animated { -webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1); -moz-transition: -moz-transform 0.25s cubic-bezier(0,0,0.25,1); transition: transform 0.25s cubic-bezier(0,0,0.25,1); } .leaflet-zoom-anim .leaflet-tile, .leaflet-pan-anim .leaflet-tile { -webkit-transition: none; -moz-transition: none; transition: none; } .leaflet-zoom-anim .leaflet-zoom-hide { visibility: hidden; } .leaflet-interactive { cursor: pointer; } .leaflet-grab { cursor: -webkit-grab; cursor: -moz-grab; cursor: grab; } .leaflet-crosshair, .leaflet-crosshair .leaflet-interactive { cursor: crosshair; } .leaflet-popup-pane, .leaflet-control { cursor: auto; } .leaflet-dragging .leaflet-grab, .leaflet-dragging .leaflet-grab .leaflet-interactive, .leaflet-dragging .leaflet-marker-draggable { cursor: move; cursor: -webkit-grabbing; cursor: -moz-grabbing; cursor: grabbing; } .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container { pointer-events: none; } .leaflet-marker-icon.leaflet-interactive, .leaflet-image-layer.leaflet-interactive, .leaflet-pane > svg path.leaflet-interactive, svg.leaflet-image-layer.leaflet-interactive path { pointer-events: visiblePainted; pointer-events: auto; } .leaflet-container { background: #ddd; outline-offset: 1px; } .leaflet-container a { color: #0078A8; } .leaflet-zoom-box { border: 2px dotted #38f; background: rgba(255,255,255,0.5); } .leaflet-container { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; font-size: 12px; font-size: 0.75rem; line-height: 1.5; } .leaflet-bar { box-shadow: 0 1px 5px rgba(0,0,0,0.65); border-radius: 4px; } .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; width: 26px; height: 26px; line-height: 26px; display: block; text-align: center; text-decoration: none; color: black; } .leaflet-bar a, .leaflet-control-layers-toggle { background-position: 50% 50%; background-repeat: no-repeat; display: block; } .leaflet-bar a:hover, .leaflet-bar a:focus { background-color: #f4f4f4; } .leaflet-bar a:first-child { border-top-left-radius: 4px; border-top-right-radius: 4px; } .leaflet-bar a:last-child { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-bottom: none; } .leaflet-bar a.leaflet-disabled { cursor: default; background-color: #f4f4f4; color: #bbb; } .leaflet-touch .leaflet-bar a { width: 30px; height: 30px; line-height: 30px; } .leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: 2px; border-top-right-radius: 2px; } .leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; } .leaflet-control-zoom-in, .leaflet-control-zoom-out { font: bold 18px 'Lucida Console', Monaco, monospace; text-indent: 1px; } .leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out { font-size: 22px; } .leaflet-control-layers { box-shadow: 0 1px 5px rgba(0,0,0,0.4); background: #fff; border-radius: 5px; } .leaflet-control-layers-toggle { background-image: none; width: 36px; height: 36px; } .leaflet-retina .leaflet-control-layers-toggle { background-image: none; background-size: 26px 26px; } .leaflet-touch .leaflet-control-layers-toggle { width: 44px; height: 44px; } .leaflet-control-layers .leaflet-control-layers-list, .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none; } .leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: relative; } .leaflet-control-layers-expanded { padding: 6px 10px 6px 6px; color: #333; background: #fff; } .leaflet-control-layers-scrollbar { overflow-y: scroll; overflow-x: hidden; padding-right: 5px; } .leaflet-control-layers-selector { margin-top: 2px; position: relative; top: 1px; } .leaflet-control-layers label { display: block; font-size: 13px; font-size: 1.08333em; } .leaflet-control-layers-separator { height: 0; border-top: 1px solid #ddd; margin: 5px -10px 5px -6px; } .leaflet-default-icon-path { background-image: none; } .leaflet-container .leaflet-control-attribution { background: #fff; background: rgba(255, 255, 255, 0.8); margin: 0; } .leaflet-control-attribution, .leaflet-control-scale-line { padding: 0 5px; color: #333; line-height: 1.4; } .leaflet-control-attribution a { text-decoration: none; } .leaflet-control-attribution a:hover, .leaflet-control-attribution a:focus { text-decoration: underline; } .leaflet-attribution-flag { display: inline !important; vertical-align: baseline !important; width: 1em; height: 0.6669em; } .leaflet-left .leaflet-control-scale { margin-left: 5px; } .leaflet-bottom .leaflet-control-scale { margin-bottom: 5px; } .leaflet-control-scale-line { border: 2px solid #777; border-top: none; line-height: 1.1; padding: 2px 5px 1px; white-space: nowrap; -moz-box-sizing: border-box; box-sizing: border-box; background: rgba(255, 255, 255, 0.8); text-shadow: 1px 1px #fff; } .leaflet-control-scale-line:not(:first-child) { border-top: 2px solid #777; border-bottom: none; margin-top: -2px; } .leaflet-control-scale-line:not(:first-child):not(:last-child) { border-bottom: 2px solid #777; } .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { box-shadow: none; } .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { border: 2px solid rgba(0,0,0,0.2); background-clip: padding-box; } .leaflet-popup { position: absolute; text-align: center; margin-bottom: 20px; } .leaflet-popup-content-wrapper { padding: 1px; text-align: left; border-radius: 12px; } .leaflet-popup-content { margin: 13px 24px 13px 20px; line-height: 1.3; font-size: 13px; font-size: 1.08333em; min-height: 1px; } .leaflet-popup-content p { margin: 17px 0; margin: 1.3em 0; } .leaflet-popup-tip-container { width: 40px; height: 20px; position: absolute; left: 50%; margin-top: -1px; margin-left: -20px; overflow: hidden; pointer-events: none; } .leaflet-popup-tip { width: 17px; height: 17px; padding: 1px; margin: -10px auto 0; pointer-events: auto; -webkit-transform: rotate(45deg); -moz-transform: rotate(45deg); -ms-transform: rotate(45deg); transform: rotate(45deg); } .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: white; color: #333; box-shadow: 0 3px 14px rgba(0,0,0,0.4); } .leaflet-container a.leaflet-popup-close-button { position: absolute; top: 0; right: 0; border: none; text-align: center; width: 24px; height: 24px; font: 16px/24px Tahoma, Verdana, sans-serif; color: #757575; text-decoration: none; background: transparent; } .leaflet-container a.leaflet-popup-close-button:hover, .leaflet-container a.leaflet-popup-close-button:focus { color: #585858; } .leaflet-popup-scrolled { overflow: auto; } .leaflet-oldie .leaflet-popup-content-wrapper { -ms-zoom: 1; } .leaflet-oldie .leaflet-popup-tip { width: 24px; margin: 0 auto; -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)"; filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678); } .leaflet-oldie .leaflet-control-zoom, .leaflet-oldie .leaflet-control-layers, .leaflet-oldie .leaflet-popup-content-wrapper, .leaflet-oldie .leaflet-popup-tip { border: 1px solid #999; } .leaflet-div-icon { background: #fff; border: 1px solid #666; } .leaflet-tooltip { position: absolute; padding: 6px; background-color: #fff; border: 1px solid #fff; border-radius: 3px; color: #222; white-space: nowrap; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.4); } .leaflet-tooltip.leaflet-interactive { cursor: pointer; pointer-events: auto; } .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { position: absolute; pointer-events: none; border: 6px solid transparent; background: transparent; content: ""; } .leaflet-tooltip-bottom { margin-top: 6px; } .leaflet-tooltip-top { margin-top: -6px; } .leaflet-tooltip-bottom:before, .leaflet-tooltip-top:before { left: 50%; margin-left: -6px; } .leaflet-tooltip-top:before { bottom: 0; margin-bottom: -12px; border-top-color: #fff; } .leaflet-tooltip-bottom:before { top: 0; margin-top: -12px; margin-left: -6px; border-bottom-color: #fff; } .leaflet-tooltip-left { margin-left: -6px; } .leaflet-tooltip-right { margin-left: 6px; } .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { top: 50%; margin-top: -6px; } .leaflet-tooltip-left:before { right: 0; margin-right: -12px; border-left-color: #fff; } .leaflet-tooltip-right:before { left: 0; margin-left: -12px; border-right-color: #fff; } @media print { .leaflet-control { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } 
+.lm{height:240px;background:#F1EEE8;z-index:0}
+.lm .leaflet-control-attribution{font-size:9px}
+.mkwrap{background:none;border:0}
+.mk{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#3E3A39;color:#fff;font:700 11px/1 "Noto Sans TC",sans-serif;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);white-space:nowrap;transform:translate(-50%,-50%)}
+.mk.h{background:#FF5809}
+.routemap .gmap{margin-left:auto;color:var(--orange);font-weight:700;text-decoration:none}
+.routemap{margin-top:14px;background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.routemap svg{display:block;width:100%;height:auto}
+.routemap .cap{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 14px 10px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.routemap .cap i{display:inline-block;width:22px;height:0;border-top:3px solid var(--orange);vertical-align:middle;margin-right:6px}
+.routemap .cap i.d{border-top-style:dashed}
+.num{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--white);font-size:11px;font-weight:700;margin-right:8px;vertical-align:1px}
+.num.h{background:var(--orange)}
+.timeline{list-style:none;margin:18px 0 0;padding:0 0 0 20px;position:relative}
+.timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--grey-2)}
+.stop{position:relative;margin-bottom:14px}
+.stop::before{content:"";position:absolute;left:-20px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--muted)}
+.stop.must::before{background:var(--orange);border-color:var(--orange)}
+.stop .tm{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px;margin-bottom:6px;color:var(--muted)}
+.stop.must .tm{color:var(--ink)}
+.card{padding:14px 16px;display:grid;gap:6px;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;border-radius:6px;padding:0 7px;line-height:1.8}
+.tag svg{width:12px;height:12px}
+.tag.walk{background:var(--walk-s);color:var(--walk)}
+.tag.taxi{background:var(--taxi-s);color:var(--taxi)}
+.tag.bus{background:var(--bus-s);color:var(--bus)}
+.tag.cable{background:var(--cable-s);color:var(--cable)}
+.tag.car{background:var(--car-s);color:var(--car)}
+.tag.plane{background:var(--plane-s);color:var(--plane)}
+.tag.must{background:var(--orange);color:var(--white);font-weight:700}
+.tag.flag{background:var(--orange-soft);color:var(--orange)}
+.card h3{font-size:17px;font-weight:700}
+.ko{font-size:13px;color:var(--muted)}
+.note{margin:0;font-size:14px}
+.alt{background:var(--grey);border-radius:var(--r-md);padding:10px 12px;display:grid;gap:3px;margin-top:2px}
+.alt .lbl{font-size:12px;font-weight:700;color:var(--orange)}
+.split{display:grid;gap:8px}
+.split > div{background:var(--grey);border-radius:var(--r-md);padding:10px 12px;display:grid;gap:4px}
+.split .who{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--grey);border-radius:999px;padding:5px 13px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:background .15s,color .15s}
+.btn svg{width:15px;height:15px}
+.btn:hover,.btn:active{background:var(--orange);color:var(--white)}
+.btn.solid{background:var(--ink);color:var(--white)}
+.btn.solid:hover,.btn.solid:active{background:var(--orange)}
+.naver .n{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:4px;background:#03C75A;color:var(--white);font-size:10px;font-weight:900}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+
+.pagehead{margin-top:20px;display:grid;gap:4px}
+.pagehead h1{font-size:26px;font-weight:900}
+.pagehead p{margin:0;font-size:14px;color:var(--muted)}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-block:14px 2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters .btn{flex:none;font-size:14px;padding:5px 14px}
+.filters .btn[aria-pressed="true"]{background:var(--orange);color:var(--white)}
+.foodlist{display:grid;gap:10px}
+.food .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.food h3{min-width:0}
+.food .hrs{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.addr{display:flex;gap:6px;align-items:flex-start;font-size:13px;color:var(--muted)}
+.addr svg{width:14px;height:14px;flex:none;margin-top:4px;color:var(--orange)}
+
+.bar{height:6px;border-radius:999px;background:var(--grey-2);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--orange);transition:width .3s}
+.hotel{padding:16px;display:grid;gap:12px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0}
+.checks{padding:4px 16px}
+.check{display:flex;gap:12px;align-items:flex-start;padding-block:12px;border-top:1px solid var(--line);cursor:pointer}
+.check:first-child{border-top:0}
+.check input{appearance:none;flex:none;width:22px;height:22px;border:1.5px solid #C9C3BA;border-radius:7px;background:var(--white);margin:1px 0 0;display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s}
+.check input:checked{background:var(--orange);border-color:var(--orange)}
+.check input:checked::after{content:"";width:5px;height:10px;border:solid var(--white);border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.check.done span{color:var(--muted);text-decoration:line-through}
+.phrases{padding:4px 16px}
+.phrase{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:10px;border-top:1px solid var(--line)}
+.phrase:first-child{border-top:0}
+.phrase .k{font-size:17px;font-weight:700}
+.phrase .zh{font-size:13px;color:var(--muted)}
+.tips{padding:16px;background:var(--grey);border-radius:var(--r-lg);font-size:14px}
+.tips ul{margin:0;padding-left:18px;display:grid;gap:6px}
+.guides{display:grid;gap:12px}
+.guide{padding:16px;display:grid;gap:10px}
+.guide h3{font-size:16px;font-weight:700}
+.guide ul{margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px}
+.guide li::marker{color:var(--orange)}
+
+.modal{position:fixed;inset:0;z-index:20;background:rgba(62,58,57,.5);display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.mcard{background:var(--paper);border-radius:var(--r-lg);padding:24px 18px;width:min(100%,520px);display:grid;gap:10px;text-align:center}
+.mcard .lead{font-size:13px;color:var(--muted)}
+.mcard .say{font-size:20px;font-weight:700;color:var(--orange)}
+.mcard .big{font-size:34px;font-weight:900;line-height:1.3;overflow-wrap:anywhere}
+.mcard .addr2{font-size:18px}
+.mcard .zh{font-size:13px;color:var(--muted)}
+
+@media (prefers-reduced-motion:no-preference){
+  .float{animation:float 5s ease-in-out infinite}
+  .leaf{animation:fall 8s linear infinite}
+  .leaf.b{animation-duration:10s;animation-delay:-3s}
+  .leaf.c{animation-duration:9s;animation-delay:-6s}
+  .leaf.d{animation-duration:11s;animation-delay:-1.5s}
+  .cablecar{animation:ride 10s ease-in-out infinite alternate}
+  .steam path{animation:steam 3s ease-in-out infinite}
+  .steam path:nth-child(2){animation-delay:.7s}
+  .steam path:nth-child(3){animation-delay:1.4s}
+  .bounce{animation:bounce .5s cubic-bezier(.3,1.5,.5,1) both}
+  .date[aria-pressed="true"]{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes fall{0%{transform:translate(0,-20px) rotate(0)}100%{transform:translate(-40px,240px) rotate(300deg)}}
+@keyframes ride{from{transform:translate(0,0)}to{transform:translate(64px,-38px)}}
+@keyframes bounce{0%{opacity:.4;transform:translateY(14px)}60%{opacity:1;transform:translateY(-4px)}100%{transform:none}}
+@keyframes steam{0%,100%{opacity:.2;transform:translateY(2px)}50%{opacity:1;transform:translateY(-2px)}}
+@keyframes pop{0%{transform:scale(.94)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* editing */
+.editbtn{border:0;background:var(--ink);color:var(--white);border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-left:6px;flex:none}
+.editbtn:hover{background:var(--orange)}
+body.editing{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+body.editing .editbtn{display:none}
+.ed{border-radius:6px;outline:1px dashed #CFC8BD;outline-offset:2px;cursor:text;min-width:2em;display:block}
+span.ed,b.ed,strong.ed{display:inline-block}
+.ed:focus{outline:2px solid var(--orange);background:var(--orange-soft)}
+.ed:empty::before{content:attr(data-ph);color:#B4ADA4;font-weight:400}
+.etools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;margin-top:4px;border-top:1px dashed var(--grey-2)}
+.etools select,.etools label{font:inherit;font-size:13px}
+.etools select{border:1px solid var(--line);border-radius:8px;padding:2px 6px;background:var(--white);color:var(--ink)}
+.etools label{display:inline-flex;gap:4px;align-items:center}
+.ebtn{border:0;background:var(--grey);border-radius:8px;padding:2px 10px;font-size:13px;cursor:pointer}
+.ebtn:hover{background:var(--orange);color:var(--white)}
+.ebtn.del{color:#B23A1E}
+.ebtn.del:hover{background:#B23A1E;color:var(--white)}
+.addbtn{width:100%;border:1.5px dashed #CFC8BD;background:transparent;border-radius:var(--r-md);padding:10px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;margin-top:4px}
+.addbtn:hover{border-color:var(--orange);color:var(--orange)}
+.editbar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--ink);color:var(--white);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.editbar .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.editbar .msg{flex:1;min-width:0;font-size:13px;opacity:.9}
+.editbar button{border:0;border-radius:999px;padding:6px 16px;font-size:14px;font-weight:700;cursor:pointer}
+.editbar .cancel{background:transparent;color:var(--white);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.editbar .save{background:var(--orange);color:var(--white)}
+.editbar .save:disabled{opacity:.6;cursor:default}
+</style>
+<template id="shell">
+<header class="topbar"><div class="in">
+  <div class="brand">首爾<i>・</i>家族行</div>
+  <nav class="tabs" role="tablist" aria-label="主選單">
+    <button role="tab" id="tab-home" data-tab="home" aria-selected="true">首頁</button>
+    <button role="tab" id="tab-plan" data-tab="plan" aria-selected="false">行程</button>
+    <button role="tab" id="tab-food" data-tab="food" aria-selected="false">美食</button>
+    <button role="tab" id="tab-list" data-tab="list" aria-selected="false">清單</button>
+  </nav>
+  <button class="editbtn" id="editBtn" hidden="">編輯</button>
+</div></header>
+<main class="wrap">
+  <section id="view-home">
+    <div class="box hero">
+      <svg viewBox="0 0 360 200" role="img" aria-label="南山首爾塔、宮殿屋頂、纜車與銀杏的插圖">
+        <rect width="360" height="200" fill="#F1EEE8"></rect>
+        <circle cx="296" cy="44" r="16" fill="#FF5809"></circle>
+        <path d="M-10 166 C40 122 90 112 140 122 C170 76 220 64 250 94 C282 82 330 98 370 130 L370 200 L-10 200Z" fill="#E4DFD6"></path>
+        <path d="M-10 182 C60 160 120 158 190 170 C250 180 310 166 370 158 L370 200 L-10 200Z" fill="#D9D3C8"></path>
+        <g class="float" stroke="#3E3A39" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M198 74 L198 22" fill="none"></path>
+          <path d="M193 82 L203 82 L201 52 L195 52Z" fill="#FFFCF6"></path>
+          <rect x="187" y="41" width="22" height="11" rx="4" fill="#FFFCF6"></rect>
+          <circle cx="198" cy="20" r="2.5" fill="#FF5809" stroke="none"></circle>
+        </g>
+        <path d="M92 150 L250 58" stroke="#3E3A39" stroke-width="1.4"></path>
+        <g class="cablecar">
+          <g transform="translate(120 134)">
+            <path d="M0 0 L0 8" stroke="#3E3A39" stroke-width="1.6"></path>
+            <rect x="-10" y="8" width="20" height="15" rx="4" fill="#FF5809"></rect>
+            <rect x="-6" y="11.5" width="12" height="5" rx="1.5" fill="#FFFCF6"></rect>
+          </g>
+        </g>
+        <g>
+          <rect x="26" y="152" width="88" height="36" fill="#FFFCF6"></rect>
+          <rect x="58" y="163" width="24" height="25" rx="12" fill="#D9D3C8"></rect>
+          <path d="M10 154 C32 148 42 134 48 130 L92 130 C98 134 108 148 130 154 Z" fill="#3E3A39"></path>
+          <path d="M32 130 C46 124 52 116 56 112 L84 112 C88 116 94 124 108 130 Z" fill="#857F7B"></path>
+        </g>
+        <g class="cafe">
+          <path d="M206 152 h68 l-6 -12 h-56z" fill="#3E3A39"></path>
+          <rect x="210" y="152" width="60" height="36" fill="#FFFCF6"></rect>
+          <rect x="210" y="152" width="7.5" height="8" fill="#FF5809"></rect><rect x="225" y="152" width="7.5" height="8" fill="#FF5809"></rect><rect x="240" y="152" width="7.5" height="8" fill="#FF5809"></rect><rect x="255" y="152" width="7.5" height="8" fill="#FF5809"></rect>
+          <path d="M210 160 h60" stroke="#3E3A39" stroke-width="1.2"></path>
+          <rect x="216" y="166" width="22" height="15" rx="2" fill="#D9D3C8"></rect>
+          <path d="M222 173 h7 v3 a3.5 3.5 0 0 1 -7 0z" fill="#FFFCF6"></path>
+          <rect x="248" y="165" width="14" height="23" rx="2" fill="#857F7B"></rect>
+          <circle cx="258.5" cy="177" r="1" fill="#FFFCF6"></circle>
+          <rect x="222" y="129" width="28" height="10" rx="2" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.2"></rect>
+          <text x="236" y="136.6" text-anchor="middle" font-size="6.5" font-weight="700" letter-spacing="1" fill="#3E3A39" font-family="Noto Sans TC, sans-serif">CAFE</text>
+          <path d="M256 132 h9 v3.5 a4.5 4.5 0 0 1 -9 0z" fill="#FF5809"></path>
+          <path d="M265 133 a2 2 0 0 1 0 4" fill="none" stroke="#FF5809" stroke-width="1.4"></path>
+          <g class="steam" fill="none" stroke="#857F7B" stroke-width="1.3" stroke-linecap="round">
+            <path d="M258 129 c-2 -3 2 -4 0 -8"></path><path d="M261 129 c-2 -3 2 -4 0 -8"></path><path d="M264 129 c-2 -3 2 -4 0 -8"></path>
+          </g>
+        </g>
+        <g stroke="#3E3A39" stroke-width="1.6">
+          <path d="M300 188 L300 160"></path><path d="M336 188 L336 168"></path><path d="M152 188 L152 170"></path>
+        </g>
+        <g fill="#F2B21B">
+          <path d="M300 106 C322 118 330 150 300 162 C270 150 278 118 300 106Z"></path>
+          <path d="M336 128 C352 138 356 160 336 170 C316 160 320 138 336 128Z"></path>
+          <path d="M152 130 C168 140 172 162 152 172 C132 162 136 140 152 130Z"></path>
+        </g>
+        <g fill="#F2B21B">
+          <path class="leaf" d="M250 20 c6 2 9 7 6 12 c-5 -1 -8 -6 -6 -12z"></path>
+          <path class="leaf b" d="M120 10 c6 2 9 7 6 12 c-5 -1 -8 -6 -6 -12z"></path>
+          <path class="leaf c" d="M330 30 c6 2 9 7 6 12 c-5 -1 -8 -6 -6 -12z"></path>
+          <path class="leaf d" d="M60 0 c6 2 9 7 6 12 c-5 -1 -8 -6 -6 -12z"></path>
+        </g>
+      </svg>
+      <div class="txt" id="heroTxt"></div>
+    </div>
+    <div class="sec-title"><h2>航班</h2><span class="count">長榮航空</span></div>
+    <div class="flights" id="flights"></div>
+    <div class="sec-title"><h2>六天一覽</h2></div>
+    <div class="days" id="dayList"></div>
+  </section>
+  <section id="view-plan" hidden="">
+    <div class="datebar" id="dateBar" role="group" aria-label="選擇日期"></div>
+    <div id="dayView"></div>
+    <div class="legend" aria-label="交通圖例">
+      <span class="tag walk">步行</span><span class="tag taxi">計程車</span><span class="tag bus">巴士</span><span class="tag cable">纜車</span><span class="tag car">包車</span><span class="tag plane">飛機</span><span class="tag must">必去</span>
+    </div>
+  </section>
+  <section id="view-food" hidden="">
+    <div class="pagehead"><span class="eyebrow">FOOD LIST</span><h1>備選美食</h1><p>都在飯店附近，當天看大家想吃什麼，點「NAVER 地圖」直接導航。</p></div>
+    <div class="filters" id="filters" role="group" aria-label="美食分類"></div>
+    <div id="foodView"></div>
+  </section>
+  <section id="view-list" hidden="">
+    <div class="pagehead"><span class="eyebrow">CHECKLIST</span><h1>出發前清單</h1><p id="progText"></p><div class="bar"><i id="progBar"></i></div></div>
+    <div class="sec-title"><h2>住宿資訊</h2></div>
+    <div class="box hotel" id="hotel"></div>
+    <div class="sec-title"><h2>交通說明</h2></div>
+    <div id="guidesWrap" class="guides"></div>
+    <div class="sec-title"><h2>待辦清單</h2><span class="count" id="progCount"></span></div>
+    <div id="checksWrap"></div>
+    <div class="sec-title"><h2>常用韓文</h2></div>
+    <div id="phrasesWrap"></div>
+    <div class="sec-title"><h2>帶外婆的小提醒</h2></div>
+    <div id="tipsWrap"></div>
+  </section>
+</main>
+<div class="modal" id="modal" hidden="" role="dialog" aria-modal="true" aria-labelledby="mBig">
+  <div class="mcard">
+    <div class="lead" id="mLead"></div>
+    <div class="say" id="mSay">여기로 가 주세요</div>
+    <div class="big" id="mBig"></div>
+    <div class="addr2" id="mAddr"></div>
+    <div class="zh" id="mZh"></div>
+    <button class="btn solid" id="mClose" style="justify-self:center;padding:6px 26px">關閉</button>
+  </div>
+</div>
+<div class="editbar" id="editBar" hidden=""><div class="in">
+  <span class="msg" id="editMsg">編輯中：點虛線框的文字直接修改，改完按「儲存」。</span>
+  <button class="cancel" id="editCancel">取消</button>
+  <button class="save" id="editSave">儲存</button>
+</div></div>
+</template>
+<div id="root"></div>
+<script type="application/json" id="trip-data">{"trip":{"eyebrow":"2026.11.12 – 11.17 · SEOUL","title":"首爾🇰🇷","crew":""},"flights":[{"no":"BR160","dir":"去程","date":"11/12（四）","from":"TPE","fromName":"桃園 第二航廈","to":"ICN","toName":"仁川 第一航廈","dur":"2 小時 30 分","dep":"15:15","arr":"18:45","note":""},{"no":"BR159","dir":"回程","date":"11/17（二）","from":"ICN","fromName":"仁川 第一航廈","to":"TPE","toName":"桃園 第二航廈","dur":"2 小時 55 分","dep":"19:45","arr":"21:40","note":"15:00 一定要從飯店出發｜電腦代號 EQKNFO"}],"hotel":{"name":"Sotetsu Hotels The Splaisir Seoul Myeongdong","ko":"소테츠 호텔즈 더 스프라지르 서울 명동","addr":"서울 중구 북창동 93-42","stay":"11/12（四）入住 → 11/17（二）退房，5 晚","station":"市廳站（1、2 號線）、會賢站（4 號線）","tip":"退房日行李寄放櫃檯，14:00 回來拿"},"days":[{"d":"11/12","w":"四","title":"抵達首爾","out":"晚上抵達・早點休息","stops":[{"t":"15:15","go":"plane","name":"BR160 桃園起飛","ko":"","addr":"","note":"18:45 抵達仁川第一航廈。起飛前 72 小時內填好 e-Arrival Card。","flag":"","must":false},{"t":"18:45","go":"","name":"仁川機場第一航廈","ko":"인천국제공항 제1여객터미널","addr":"","note":"出關後搭預約好的包車，4 人加行李直達飯店。","flag":"","must":false},{"t":"21:00","go":"taxi","name":"Sotetsu Splaisir 入住","ko":"소테츠 호텔즈 더 스프라지르 서울 명동","addr":"서울 중구 북창동 93-42","note":"長輩先休息，Karen 出門買宵夜。","flag":"3,200 KRW","must":false,"lat":37.5627,"lng":126.9783},{"t":"21:15","go":"walk","name":"金城館 羅州牛骨湯","ko":"금성관 나주곰탕","addr":"","note":"清燉牛骨湯不辣，週四營業到 22:00；趕不上就外帶。","flag":"","must":false,"lat":37.56136,"lng":126.97881}]},{"d":"11/13","w":"五","title":"景福宮・三清洞銀杏・汗蒸幕","out":"08:00 出門","stops":[{"t":"08:00","go":"walk","name":"加倍度 市廳店","ko":"","addr":"","note":"平日 7:00 開，搭電梯到 4 樓最安靜。","flag":"","must":false,"q":"가배도 시청","alt":{"name":"Camel cafe","ko":"","addr":"서울 종로구 효자로 31 (통의동)","note":"在景福宮旁邊很漂亮🧡"},"lat":37.56344,"lng":126.97637},{"t":"08:40","go":"walk","name":"武橋洞北魚湯","ko":"무교동북어국집","addr":"","note":"只賣一種明太魚湯，清爽溫和，排隊但翻桌快。","flag":"","must":false,"lat":37.56775,"lng":126.97985},{"t":"09:45","go":"taxi","name":"景福宮","ko":"경복궁","addr":"","note":"計程車停在離銀杏最近的入口，只逛精華段約 1 小時。","flag":"","must":true,"lat":37.5796,"lng":126.977},{"t":"11:00","go":"walk","name":"三清洞路銀杏道","ko":"삼청동길","addr":"","note":"從景福宮東側出來接三清洞路，平坦人行道慢慢拍照。","flag":"","must":true,"lat":37.583,"lng":126.9813},{"t":"12:00","go":"walk","name":"黃生家刀切麵","ko":"황생가칼국수","addr":"","note":"必比登推薦，清湯刀切麵和大顆餃子；店外有候位座位。","flag":"","must":false,"alt":{"name":"三清洞麵疙瘩","ko":"삼청동수제비","addr":"","note":"排太久時改來這間，麵疙瘩配馬鈴薯煎餅。"},"lat":37.5801,"lng":126.98066},{"t":"13:30","go":"taxi","name":"仁寺洞 Spa & Sauna","ko":"인사동 스파 앤 사우나","addr":"서울 종로구 율곡로6길 36 지하1층","note":"外婆待鹽蒸房（約 48°C）或休息區睡午覺，高溫房不要進。營業到 21:00。","flag":"","must":false,"alt":{"name":"The Park Spa Land","ko":"더파크스파랜드","addr":"서울 영등포구 선유동1로 50","note":"備案，車程 30–40 分鐘。18:00 後入場要出示實體護照。"},"lat":37.57577,"lng":126.98909},{"t":"16:30","go":"taxi","name":"回飯店休息","ko":"","addr":"","note":"","flag":"","must":false,"lat":37.5627,"lng":126.9783},{"t":"18:00","go":"walk","name":"滿足五香豬腳 市廳店","ko":"만족오향족발 시청점","addr":"서울 중구 서소문로 134-7","note":"必比登推薦，原味加辣味各半。","flag":"","must":false,"alt":{"name":"본뼈 馬鈴薯排骨湯","ko":"본뼈 감자탕","addr":"서울 중구 세종대로11길 30","note":"想喝湯就改這間，17:30 前或 19:00 後去，避開下班人潮。"},"lat":37.56321,"lng":126.976}]},{"d":"11/14","w":"六","title":"德壽宮・下午分頭・烤肉","out":"09:00 出門","stops":[{"t":"09:00","go":"walk","name":"Cafe Biondien","ko":"","addr":"","note":"飯店旁復古黑膠咖啡廳，二樓寬敞。","flag":"","must":false,"q":"카페 비온디앤","lat":37.56371,"lng":126.97874},{"t":"09:45","go":"walk","name":"金城館 羅州牛骨湯","ko":"금성관 나주곰탕","addr":"","note":"牛骨湯早餐。","flag":"","must":false,"lat":37.56136,"lng":126.97881},{"t":"10:40","go":"walk","name":"德壽宮 守門將交接","ko":"덕수궁 대한문","addr":"","note":"11:00 在大漢門看交接儀式，再逛德壽宮和石牆路銀杏。","flag":"","must":true,"lat":37.5658,"lng":126.9768},{"t":"12:30","go":"walk","name":"愛星會館 韓牛牛骨湯","ko":"애성회관 한우곰탕","addr":"","note":"飯店旁，吃完回飯店午休。週六 14:30 休息。","flag":"","must":false,"lat":37.56242,"lng":126.9789},{"t":"14:00","go":"","name":"下午分頭行動","ko":"","addr":"","note":"","flag":"","must":false,"split":[{"who":"KAREN","go":"bus","must":true,"name":"漢南洞逛街","ko":"한남동","note":"搭地鐵想逛NouNou","lat":37.5375,"lng":127.0005},{"who":"媽媽・阿姨・外婆","go":"taxi","must":false,"name":"樂天百貨本店＋明洞","ko":"롯데백화점 본점","note":"走路約 10 分鐘，有電梯和座位，累了就坐美食街或咖啡廳。","lat":37.5647,"lng":126.9813}]},{"t":"19:00","go":"walk","name":"都樓閣 市廳本店","ko":"도누각 시청본점","addr":"서울 중구 남대문로1길 18 1층","note":"店員幫烤。五花肉、手工豬排骨、牛肉烤肉定食、蒸蛋、水冷麵。電話 +82 2-318-3628。","flag":"需訂位","must":false,"lat":37.56188,"lng":126.97752}]},{"d":"11/15","w":"日","title":"韓屋村・聖水洞逛街・人參雞湯","out":"09:00 出門","stops":[{"t":"09:00","go":"walk","name":"圓珠咖啡","ko":"구슬커피","addr":"","note":"南大門旁的手沖店，藝伎很有名，鬆餅份量大。","flag":"","must":false,"alt":{"name":"SAAN 2","ko":"","addr":"","note":"小小的咖啡外帶店"},"lat":37.55841,"lng":126.97776},{"t":"09:45","go":"taxi","name":"美星屋","ko":"미성옥","addr":"","note":"1966 年老店雪濃湯，湯頭不先調味，自己加鹽。","flag":"","must":false,"lat":37.56412,"lng":126.98391},{"t":"10:30","go":"taxi","name":"南山谷韓屋村","ko":"남산골한옥마을","addr":"","note":"平地免費，週末常有傳統表演。","flag":"","must":true,"lat":37.55932,"lng":126.99448},{"t":"12:30","go":"taxi","name":"안목 성수","ko":"안목 성수","addr":"","note":"車程約 25 分鐘。濃郁牛肉湯飯，週末先線上候位。","flag":"先候位","must":false,"lat":37.5412,"lng":127.05801},{"t":"13:30","go":"walk","name":"AMORE 聖水","ko":"아모레성수","addr":"서울 성동구 아차산로11길 7","note":"安靜的美妝概念店，可以試用、做膚色測驗，裡面有座位能休息；吃完午餐走幾分鐘就到（週一公休，週日有開）。","flag":"","must":false,"lat":37.54441,"lng":127.05912},{"t":"14:15","go":"walk","name":"延武場街逛街","ko":"연무장길","addr":"","note":"聖水洞最熱鬧的一條街，平坦好走。照下面分頭，16:00 在 Airdrop Coffee 會合。","flag":"","must":true,"split":[{"who":"KAREN・阿姨","go":"walk","must":true,"name":"逛街路線（往西走）","ko":"연무장길","note":"XYZ SEOUL 快閃店 → luvluvluv → Olive Young 聖水 → Dior 聖水 → Point of View 文具店，路線細節看「清單」頁。","lat":37.5434,"lng":127.0514},{"who":"媽媽・外婆","go":"walk","must":false,"name":"Airdrop Coffee 坐著等","ko":"에어드랍커피 성수","note":"在 Olive Young 聖水旗艦店地下一樓，空間大、座位多、有乾淨廁所，可以久坐。週末 11:00 開。","lat":37.54417,"lng":127.05457}]},{"t":"16:00","go":"taxi","name":"首爾林・花店咖啡廳","ko":"카페 마트리","addr":"서울 성동구 서울숲4길 17","note":"計程車約 5 分鐘。滿屋鮮花的安靜咖啡廳，有英文菜單，讓外婆坐著休息；體力夠再進首爾林走一小段。","flag":"","must":false,"lat":37.54738,"lng":127.043,"alt":{"name":"5TO7 舒芙蕾","ko":"5TO7","addr":"서울 성동구 서울숲2길 44-13","note":"想吃甜點就來這間，舒芙蕾現做要等約 25 分鐘，週末人多。"}},{"t":"17:30","go":"taxi","name":"土俗村蔘雞湯","ko":"토속촌 삼계탕","addr":"","note":"首爾最有名的蔘雞湯老店，雞肉燉到很軟，湯頭溫和。週日晚上會排隊，17:30 前到比較好；店面大、翻桌快。","flag":"","must":false,"alt":{"name":"百濟蔘雞湯 明洞","ko":"백제삼계탕","addr":"서울 중구 명동8길 8-10","note":"離飯店近、營業到 21:00，人參味比較淡，大家累了就改來這間。"},"lat":37.57778,"lng":126.97159}]},{"d":"11/16","w":"一","title":"廣藏市場・首爾塔夕陽","out":"08:00 出門","stops":[{"t":"08:00","go":"walk","name":"Cafe Doldam-Kkong","ko":"","addr":"","note":"德壽宮石牆路上，平日 8:00 開。","flag":"","must":false,"q":"카페 돌담콩","lat":37.56477,"lng":126.9762},{"t":"08:45","go":"taxi","name":"禮智食堂","ko":"예지식당","addr":"","note":"家庭式韓食，石鍋拌飯、泡菜煎餅。","flag":"只收現金","must":false,"lat":37.56459,"lng":126.98453},{"t":"10:00","go":"taxi","name":"廣藏市場","ko":"광장시장","addr":"","note":"平日上午人比較少，看阿珠媽現場煎綠豆煎餅。二樓有韓服布料和棉被店，長輩顧店很有味道；逛完可以沿清溪川走一小段。","flag":"","must":true,"lat":37.57,"lng":126.9996},{"t":"11:30","go":"walk","name":"順熙家綠豆煎餅","ko":"순희네빈대떡","addr":"","note":"市場裡現煎綠豆煎餅配麻藥飯捲，店內有正式座位，外婆坐得比較舒服。","flag":"","must":false,"alt":{"name":"본뼈 馬鈴薯排骨湯","ko":"본뼈 감자탕","addr":"서울 중구 세종대로11길 30","note":"想喝熱湯就回市廳吃這間，怕辣說「덜 맵게 해 주세요」。"},"lat":37.57058,"lng":127.00071},{"t":"13:00","go":"taxi","name":"回飯店午休","ko":"","addr":"","note":"","flag":"","must":false,"lat":37.5627,"lng":126.9783},{"t":"15:00","go":"taxi","name":"南山纜車站","ko":"남산케이블카","addr":"서울 중구 소파로 83","note":"計程車直達纜車站，買單程票。","flag":"","must":false,"lat":37.5568,"lng":126.9827},{"t":"15:30","go":"cable","name":"N 首爾塔看夕陽","ko":"N서울타워","addr":"","note":"咖啡廳休息 → 掛愛情鎖 → 日落約 17:20 前上展望台。看完夜景先在咖啡廳坐一下再下山。","flag":"","must":true,"lat":37.5512,"lng":126.9882},{"t":"18:00","go":"bus","name":"循環巴士 01A 下山","ko":"","addr":"","note":"山頂沒有計程車。在「YTN 서울타워」站搭 01A，坐到市廳站下車。上車先跟司機說「네 명이요」，再用實體 T-money 卡嗶一次付四人。","flag":"","must":false,"lat":37.5657,"lng":126.9769},{"t":"19:00","go":"taxi","name":"釜民屋","ko":"부민옥","addr":"","note":"1956 年老店。","flag":"帶現金","must":false,"lat":37.56749,"lng":126.98028}]},{"d":"11/17","w":"二","title":"南大門採購・回台","out":"09:00 出門・先退房","stops":[{"t":"09:00","go":"walk","name":"加倍度 市廳店","ko":"","addr":"","note":"出門前先退房，行李寄放櫃檯。","flag":"","must":false,"q":"가배도 시청","lat":37.56344,"lng":126.97637},{"t":"09:45","go":"taxi","name":"河東館","ko":"하동관","addr":"","note":"80 年老店清燉牛肉湯。","flag":"","must":false,"lat":37.56439,"lng":126.98502},{"t":"10:45","go":"taxi","name":"南大門市場","ko":"남대문시장","addr":"","note":"海苔、伴手禮最後採購。","flag":"","must":true,"lat":37.5592,"lng":126.9775},{"t":"12:30","go":"walk","name":"南大門刀削麵街","ko":"남대문시장 칼국수골목","addr":"","note":"點刀削麵送拌冷麵，指菜單就能點。","flag":"","must":false,"lat":37.5596,"lng":126.9779},{"t":"14:00","go":"taxi","name":"回飯店取行李","ko":"소테츠 호텔즈 더 스프라지르 서울 명동","addr":"서울 중구 북창동 93-42","note":"外婆在大廳先坐著休息。","flag":"","must":false,"lat":37.5627,"lng":126.9783},{"t":"15:00","go":"car","name":"包車前往仁川機場","ko":"인천국제공항 제1여객터미널","addr":"","note":"第一航廈，提早 3 小時到。","flag":"15:00 出發","must":false},{"t":"19:45","go":"plane","name":"BR159 仁川起飛","ko":"","addr":"","note":"21:40 抵達桃園，旅程結束。","flag":"","must":false}]}],"food":[{"cat":"聖水洞咖啡廳（可久坐）","items":[{"name":"Airdrop Coffee 聖水","ko":"에어드랍커피 성수","addr":"서울 성동구 연무장7길 13 지하1층","hrs":"週末 11:00–22:00","note":"Olive Young 聖水旗艦店樓下，空間大、座位種類多，有乾淨廁所。"},{"name":"Looop","ko":"루프 성수","addr":"서울 성동구 연무장5길 9-13","hrs":"9:30–02:00","note":"Dior 聖水旁，4 層樓空間寬敞，有純素甜點，三樓有免費拍照區。"},{"name":"聖水律 咖啡","ko":"성수율 카페","addr":"서울 성동구 성수이로16길 31","hrs":"9:00–20:00","note":"5 層樓建築，麵包份量大，離聖水站近，適合吃完午餐坐一下。"},{"name":"La Avenue","ko":"라에비뉴","addr":"서울 성동구 성수동2가 289-27","hrs":"","note":"大型咖啡廳，空間寬敞、燈光漂亮，有戶外座位和蛋糕。"},{"name":"cafe far ben","ko":"카페 파벤","addr":"서울 성동구 성수이로 65","hrs":"10:00–21:00","note":"工業風、採光好，離主街稍遠比較不擠，香蕉蛋糕好評。"},{"name":"Cafe Matri 花店咖啡","ko":"카페 마트리","addr":"서울 성동구 서울숲4길 17","hrs":"週日 12:00–22:00","note":"首爾林旁，滿屋鮮花很安靜，有英文菜單。"},{"name":"5TO7","ko":"5TO7","addr":"서울 성동구 서울숲2길 44-13","hrs":"12:00–21:00","note":"招牌舒芙蕾現做，要等約 25 分鐘，週末人多。"}]},{"cat":"豬肉湯飯","items":[{"name":"보승회관 市廳店","ko":"보승회관 시청점","addr":"서울 중구 세종대로 66","hrs":"幾乎 24 小時","note":"離飯店最近，平板可切英文點餐，早餐宵夜都行。"},{"name":"남파랑국밥","ko":"남파랑국밥","addr":"서울 중구 북창동 11-6 1층","hrs":"","note":"就在北倉洞，菜單有中英文，肉給很多。"},{"name":"이소 돼지국밥","ko":"이소 돼지국밥","addr":"서울 중구 을지로1가 32 2층","hrs":"午休 15:30–17:00","note":"清澈湯頭、大片豬肉。"}]},{"cat":"馬鈴薯排骨湯","items":[{"name":"본뼈 감자탕","ko":"본뼈 감자탕","addr":"서울 중구 세종대로11길 30","hrs":"無休息時間","note":"可外帶，避開 18:00 下班人潮。"}]},{"cat":"一隻雞","items":[{"name":"曉潭刀切麵一隻雞","ko":"효담칼국수 닭한마리 명동","addr":"서울 중구 명동3길 12 지하1층","hrs":"10:30–22:15","note":"清湯不辣，有半隻雞份量，馬鈴薯煎餅好評。"},{"name":"김씨네닭한마리","ko":"김씨네닭한마리","addr":"서울 중구 명동8가길 51","hrs":"11:00–22:00","note":"店主熱情，可切換中文菜單。"}]},{"cat":"烤肉","items":[{"name":"都樓閣 市廳本店","ko":"도누각 시청본점","addr":"서울 중구 남대문로1길 18 1층","hrs":"週日公休","note":"店員幫烤，有會講中文的阿姨。"},{"name":"본집 市廳本店","ko":"본집 시청본점","addr":"서울 중구 남대문로1길 26-7","hrs":"週末 16:00 開","note":"飯店旁，店員幫烤並解說部位。"},{"name":"Yenmat Seoul Bulgogi","ko":"","q":"서울 중구 명동 24-28","addr":"서울 중구 명동 24-28","hrs":"11:00–22:00","note":"甜甜的醬烤牛肉，長輩接受度高。"},{"name":"韓式王碑家 明洞店","ko":"한식왕비집 명동점","addr":"서울 중구 명동6길 15 지하1층","hrs":"7:30–23:00","note":"早上就開，有排骨湯、拌飯定食。"}]},{"cat":"豬腳","items":[{"name":"滿足五香豬腳 市廳店","ko":"만족오향족발 시청점","addr":"서울 중구 서소문로 134-7","hrs":"週末 12:00 開","note":"必比登推薦，原味加辣味各半。"}]},{"cat":"冷麵","items":[{"name":"乙密台 武橋店","ko":"을밀대 무교점","addr":"서울 중구 남대문로9길 40 지하1층","hrs":"11:00–21:30","note":"平壤冷麵配綠豆煎餅，排隊通常 10 分鐘內。"}]}],"checks":[{"id":"c2","text":"訂位：都樓閣 11/14 19:00（4 位）"},{"id":"c4","text":"起飛前 72 小時內填 e-Arrival Card（官網免費）"},{"id":"c5","text":"換韓元現金（禮智食堂、釜民屋只收現金）"},{"id":"c6","text":"Karen 的 iPhone 綁 Mobile T-money，出發前用 Mastercard 儲值試試看"},{"id":"c6b","text":"到首爾後在便利商店買 1 張實體 T-money，現金儲值 1 萬韓元（首爾塔下山巴士四人一起付）"},{"id":"c7","text":"實體護照 ×4 隨身帶"},{"id":"c8","text":"媽媽手機裝 Papago、開位置分享"},{"id":"c9","text":"暖暖包、行動電源放隨身行李"},{"id":"c11","text":"幫外婆準備手杖椅、厚外套、帽子圍巾"}],"phrases":[{"zh":"請到這裡","ko":"여기로 가 주세요"},{"zh":"四位","ko":"네 명이에요"},{"zh":"請幫我外帶","ko":"포장해 주세요"},{"zh":"少辣一點","ko":"덜 맵게 해 주세요"},{"zh":"廁所在哪裡？","ko":"화장실 어디예요?"},{"zh":"請給我收據","ko":"영수증 주세요"},{"zh":"謝謝","ko":"감사합니다"}],"tips":["每走 30–40 分鐘就找地方坐下，長距離和上坡一律叫計程車。","汗蒸幕只待 48°C 左右的房間，每次 10 分鐘內，多喝水，進出浴池有人扶。","首爾 11 月中傍晚很冷，厚外套、帽子、圍巾隨身帶。"],"guides":[{"title":"首爾塔怎麼上山、下山","items":["計程車和一般車輛不能開上山頂，所以山頂叫不到計程車。","上山：從飯店搭計程車到南山纜車站，給司機看「남산케이블카」，計程車可以停在纜車站門口。","纜車約 3 分鐘，買單程票就好；到山頂後還有一小段階梯才到塔下，讓外婆慢慢走。","下山首選：在山頂的「YTN 서울타워」站搭循環巴士 01A，約 6–9 分鐘一班，營運到 23:00，坐到「市廳站」下車就回到飯店附近。","01A 只收交通卡、不收現金。用實體 T-money 卡一次付四人：上車先跟司機說「네 명이요」（四位），等司機設定好人數再嗶卡，下車不用再嗶。","也可以搭纜車下山，到山下纜車站再叫計程車，但天黑後下山的纜車排隊最久。","日落後大家同時下山，可以先在塔下咖啡廳多坐 20–30 分鐘再走，避開人潮。"]},{"title":"聖水洞逛街路線（11/15 下午）","items":["起點：吃完안목 성수午餐，走幾分鐘到 AMORE 聖水（아차산로11길 7），美妝概念店，可試用、有座位。","沿延武場街（연무장길）往西走，全程平路約 1 公里。","XYZ SEOUL（연무장길 73）：常換主題的快閃店。","luvluvluv（연무장길 38）：人氣韓國服飾選物店。","Olive Young 聖水旗艦店：地下一樓就是 Airdrop Coffee，媽媽和外婆在這裡坐著等。","Dior 聖水（연무장5길 7）：外觀很好拍，旁邊的 Looop 咖啡廳也能久坐。","Point of View（연무장길 18）：三層樓的精品文具店，適合買小禮物。","16:00 回 Airdrop Coffee 會合，叫計程車去首爾林旁的花店咖啡廳。"]}]}</script>
+<script id="app">
+(function(){
+const ICON={
+ walk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M11 21l2-6-3-3 2-5 3 3h3M8 21l2-5M7 11l3-3"/></svg>',
+ taxi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M4 16v-4l2-5h12l2 5v4zM9 4h6"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>',
+ bus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 11h14M8 18v3M16 18v3"/></svg>',
+ cable:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M2 5l20-3M12 4v5"/><rect x="6" y="9" width="12" height="11" rx="3"/></svg>',
+ car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M3 16v-5l3-5h9l3 5h3v5z"/><circle cx="8" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>',
+ plane:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M2 13l20-8-6 16-4-6z"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>'
+};
+const GO={walk:'步行',taxi:'計程車',bus:'巴士',cable:'纜車',car:'包車',plane:'飛機'};
+const HEAD_BITS='<title>首爾銀杏家族行</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">\n<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/script>\n';
+const RESET_FALLBACK=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}';
+
+const ORIG=document.getElementById('trip-data').textContent;
+let DATA=JSON.parse(ORIG);
+let E=false, dirty=false, art=null, curDay=0, foodCat='全部';
+
+const root=document.getElementById('root');
+root.appendChild(document.getElementById('shell').content.cloneNode(true));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function getP(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],DATA)}
+function setP(p,v){const ks=p.split('.');const last=ks.pop();const o=ks.reduce((o,k)=>o[k],DATA);o[last]=v}
+
+/* editable text: in view mode empty fields disappear */
+function T(tag,p,cls,ph,always){
+  const v=getP(p)??'';
+  if(!E&&!v&&!always) return '';
+  const ed=E?` contenteditable="plaintext-only" spellcheck="false" data-k="${p}" data-ph="${esc(ph||'')}"`:'';
+  return `<${tag} class="${cls||''}${E?' ed':''}"${ed}>${esc(v)}</${tag}>`;
+}
+const EO=(p)=>E?T('div',p.k,p.cls||'ko',p.ph):'';
+
+const naver=o=>'https://map.naver.com/p/search/'+encodeURIComponent(o.q||o.ko||o.addr||o.name);
+function acts(o,path){
+  if(E) return '';
+  let h='';
+  if(o.ko) h+=`<button class="btn solid" data-drv="${path}">${ICON.taxi}給司機看</button>`;
+  if(o.ko||o.q||o.addr) h+=`<a class="btn naver" href="${naver(o)}" target="_blank" rel="noopener"><span class="n">N</span>NAVER 地圖</a>`;
+  return h?`<div class="actions">${h}</div>`:'';
+}
+function goSel(p,v){return `<select data-k="${p}" aria-label="交通方式"><option value="">交通：無</option>${Object.entries(GO).map(([k,n])=>`<option value="${k}"${k===v?' selected':''}>${n}</option>`).join('')}</select>`}
+const goTag=g=>g&&GO[g]?`<span class="tag ${g}">${ICON[g]}${GO[g]}</span>`:'';
+const tools=(arr,i,extra='')=>`<div class="etools">${extra}<button class="ebtn" data-act="move" data-arr="${arr}" data-i="${i}" data-dir="-1" aria-label="上移">↑</button><button class="ebtn" data-act="move" data-arr="${arr}" data-i="${i}" data-dir="1" aria-label="下移">↓</button><button class="ebtn del" data-act="del" data-arr="${arr}" data-i="${i}">刪除</button></div>`;
+
+/* HOME */
+function renderHome(){
+  $('#heroTxt').innerHTML=T('div','trip.eyebrow','eyebrow','小標')+T('h1','trip.title','','標題',1)+T('div','trip.crew','crew','成員');
+  $('#flights').innerHTML=DATA.flights.map((f,i)=>{const b=`flights.${i}.`;return `<article class="box flight">
+    <div class="head">${T('span',b+'no','no','航班',1)}${T('span',b+'dir','','去程/回程',1)}${T('span',b+'date','date','日期',1)}</div>
+    <div class="route"><div class="pt">${T('b',b+'from','','出發地',1)}${T('span',b+'fromName','','航廈',1)}</div>
+      <div class="mid"><svg viewBox="0 0 56 14" aria-hidden="true"><path d="M2 7h44" stroke="#C9C3BA" stroke-width="1.5" stroke-dasharray="3 3"/><path d="M44 2l9 5-9 5z" fill="#FF5809"/></svg>${T('span',b+'dur','','飛行時間')}</div>
+      <div class="pt r">${T('b',b+'to','','目的地',1)}${T('span',b+'toName','','航廈',1)}</div></div>
+    <div class="times"><div><span class="ko">出發</span><br>${T('b',b+'dep',i?'warn':'','時間',1)}</div><div style="text-align:right"><span class="ko">抵達</span><br>${T('b',b+'arr','','時間',1)}</div></div>
+    ${T('div',b+'note','ko','備註')}</article>`}).join('');
+  $('#dayList').innerHTML=DATA.days.map((d,i)=>`<button class="dayrow" data-goday="${i}"><span class="dt">${esc(d.d)}<small>週${esc(d.w)}</small></span><span class="tt">${esc(d.title)}</span><span class="arrow" aria-hidden="true">→</span></button>`).join('');
+}
+
+/* PLAN */
+function renderDateBar(){
+  $('#dateBar').innerHTML=DATA.days.map((d,i)=>`<button class="date" data-day="${i}" aria-pressed="${i===curDay}"><b>${esc(d.d)}</b><span>週${esc(d.w)}</span></button>`).join('');
+}
+function stopHTML(s,p,arr,j){
+  let c='';
+  if(E){
+    c+=`<div class="etools" style="border:0;padding:0;margin:0">${s.split?'':goSel(p+'.go',s.go)}<label><input type="checkbox" data-k="${p}.must"${s.must?' checked':''}>必去</label></div>`;
+    c+=T('div',p+'.t','','時間（例 09:00）',1);
+  } else {
+    const flags=(s.must?'<span class="tag must">必去</span>':'')+(s.flag?`<span class="tag flag">${esc(s.flag)}</span>`:'');
+    if(s.go||flags) c+=`<div class="tags">${goTag(s.go)}${flags}</div>`;
+  }
+  c+=T('h3',p+'.name','','地點名稱',1);
+  c+=T('div',p+'.ko','ko','韓文名稱（給司機看、查地圖用）');
+  if(E){c+=T('div',p+'.addr','ko','韓文地址（可空白）');c+=T('div',p+'.flag','ko','標記（例：需訂位、只收現金）')}
+  c+=T('p',p+'.note','note','備註');
+  if(s.split){
+    c+=`<div class="split">${s.split.map((x,k)=>{const q=`${p}.split.${k}`;return `<div>${T('span',q+'.who','who','誰',1)}${E?`<div class="etools" style="border:0;padding:0;margin:0">${goSel(q+'.go',x.go)}<label><input type="checkbox" data-k="${q}.must"${x.must?' checked':''}>必去</label></div>`:`<div class="tags">${goTag(x.go)}${x.must?'<span class="tag must">必去</span>':''}</div>`}${T('strong',q+'.name','','地點',1)}${T('div',q+'.ko','ko','韓文名稱')}${T('p',q+'.note','note','備註')}${acts(x,q)}</div>`}).join('')}</div>`;
+  } else c+=acts(s,p);
+  if(s.alt){
+    const q=p+'.alt';
+    c+=`<div class="alt"><span class="lbl">備案</span>${T('strong',q+'.name','','備案地點',1)}${T('div',q+'.ko','ko','韓文名稱')}${E?T('div',q+'.addr','ko','韓文地址'):''}${T('span',q+'.note','note','備註')}${acts(s.alt,q)}${E?`<div><button class="ebtn del" data-act="altdel" data-p="${p}">移除備案</button></div>`:''}</div>`;
+  }
+  if(E) c+=tools(arr,j,s.alt||s.split?'':`<button class="ebtn" data-act="altadd" data-p="${p}">＋備案</button>`);
+  const must=s.must||(s.split&&s.split.some(x=>x.must));
+  return `<li class="stop${must?' must':''}"><div class="tm">${NUMS[j]?`<span class="num${NUMS[j]==='H'?' h':''}">${NUMS[j]}</span>`:''}${E?'':esc(s.t)}</div><div class="box card">${c}</div></li>`;
+}
+let NUMS=[],ROUTE=null;
+const HOTEL_LL=[37.5627,126.9783];
+function isHotel(t){return Math.abs(t.lat-HOTEL_LL[0])<2e-4&&Math.abs(t.lng-HOTEL_LL[1])<2e-4}
+function routeMap(day){
+  NUMS=[];const pts=[],segs=[];let n=0,prev=null;
+  day.stops.forEach((s,j)=>{
+    const tg=s.split?s.split.filter(x=>x.lat!=null):(s.lat!=null?[s]:[]);
+    if(!tg.length) return;
+    const h=tg.length===1&&isHotel(tg[0]);
+    const lab=h?'H':String(++n);NUMS[j]=lab;
+    tg.forEach(t=>{pts.push({lat:+t.lat,lng:+t.lng,lab,h:isHotel(t)});if(prev) segs.push({a:prev,b:t,go:t.go||s.go})});
+    prev=tg[tg.length-1];
+  });
+  ROUTE={pts,segs};
+  if(pts.length<2){ROUTE=null;return ''}
+  const lat0=pts.reduce((a,p)=>a+p.lat,0)/pts.length,k=Math.cos(lat0*Math.PI/180);
+  const X=p=>p.lng*k,Y=p=>-p.lat;
+  let x0=Math.min(...pts.map(X)),x1=Math.max(...pts.map(X)),y0=Math.min(...pts.map(Y)),y1=Math.max(...pts.map(Y));
+  const minS=0.006;if(x1-x0<minS){const c=(x0+x1)/2;x0=c-minS/2;x1=c+minS/2}if(y1-y0<minS){const c=(y0+y1)/2;y0=c-minS/2;y1=c+minS/2}
+  const W=340,H=200,pad=26,sc=Math.min((W-2*pad)/(x1-x0),(H-2*pad)/(y1-y0));
+  const ox=(W-(x1-x0)*sc)/2,oy=(H-(y1-y0)*sc)/2;
+  const P=p=>[ox+(X(p)-x0)*sc,oy+(Y(p)-y0)*sc];
+  let g='';for(let x=20;x<W;x+=40)g+=`<path d="M${x} 0V${H}" stroke="#EFECE6"/>`;for(let y=20;y<H;y+=40)g+=`<path d="M0 ${y}H${W}" stroke="#EFECE6"/>`;
+  let lines='';segs.forEach(({a,b,go})=>{const [ax,ay]=P(a),[bx,by]=P(b);if(Math.hypot(ax-bx,ay-by)<1)return;
+    lines+=`<path d="M${ax.toFixed(1)} ${ay.toFixed(1)}L${bx.toFixed(1)} ${by.toFixed(1)}" stroke="#FF5809" stroke-width="3" stroke-linecap="round"${go==='walk'?'':' stroke-dasharray="6 6"'} fill="none"/>`});
+  const groups=[];pts.forEach(p=>{const [x,y]=P(p);let g2=groups.find(q=>Math.hypot(q.x-x,q.y-y)<3);if(g2){if(!g2.labs.includes(p.lab))g2.labs.push(p.lab);g2.h=g2.h||p.h}else groups.push({x,y,labs:[p.lab],h:p.h})});
+  const placed=[];let dots='';
+  groups.forEach(q=>{let x=q.x,y=q.y,t=0;while(t<8&&placed.some(o=>Math.hypot(o[0]-x,o[1]-y)<17)){x+=11;y-=11;t++}placed.push([x,y]);
+    if(x!==q.x||y!==q.y) dots+=`<path d="M${q.x.toFixed(1)} ${q.y.toFixed(1)}L${x.toFixed(1)} ${y.toFixed(1)}" stroke="#857F7B" stroke-width="1"/>`;
+    const txt=q.h?'H':q.labs.filter(l=>l!=='H').join('·');const w=Math.max(18,txt.length*6.4+8);
+    dots+=`<rect x="${(x-w/2).toFixed(1)}" y="${(y-9).toFixed(1)}" width="${w.toFixed(1)}" height="18" rx="9" fill="${q.h?'#FF5809':'#3E3A39'}" stroke="#FFFFFF" stroke-width="2"/><text x="${x.toFixed(1)}" y="${(y+3.6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF" font-family="Noto Sans TC,sans-serif">${txt}</text>`});
+  const go=new Set(segs.map(s=>s.go==='walk'?'w':'d'));
+  const gurl='https://www.google.com/maps/dir/'+pts.filter((p,i)=>!i||p.lat!==pts[i-1].lat||p.lng!==pts[i-1].lng).map(p=>p.lat+','+p.lng).join('/');
+  const live=!!window.L;
+  return `<figure class="routemap" style="margin-inline:0;margin-bottom:0">${live?'<div class="lm" id="liveMap"></div>':''}<svg id="schemMap"${live?' hidden':''} viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(day.d)} 當天路線圖"><rect width="${W}" height="${H}" fill="#FAF8F3"/>${g}${lines}${dots}<g transform="translate(${W-18} 18)"><path d="M0 -9L4 3H-4Z" fill="#3E3A39"/><text y="13" text-anchor="middle" font-size="8" font-weight="700" fill="#3E3A39" font-family="Noto Sans TC,sans-serif">N</text></g></svg>
+  <figcaption class="cap">${go.has('w')?'<span><i></i>步行</span>':''}${go.has('d')?'<span><i class="d"></i>計程車・巴士・纜車</span>':''}<span>數字對應下方行程，H 是飯店</span><a class="gmap" href="${gurl}" target="_blank" rel="noopener">Google 地圖開啟 ↗</a></figcaption></figure>`;
+}
+function mapFallback(){const a=document.getElementById('liveMap'),b=document.getElementById('schemMap');if(a)a.hidden=true;if(b)b.hidden=false;if(window._lmap){try{window._lmap.remove()}catch(e){}window._lmap=null}}
+function initLiveMap(){
+  const el=document.getElementById('liveMap');if(!el)return;
+  if(window._lmap){try{window._lmap.remove()}catch(e){}window._lmap=null}
+  if(!window.L||!ROUTE){mapFallback();return}
+  if($('#view-plan').hidden)return;
+  let ok=false,failed=false;const fail=()=>{if(!ok&&!failed){failed=true;mapFallback()}};
+  try{
+    const m=L.map(el,{zoomControl:false,scrollWheelZoom:false,tap:false});window._lmap=m;
+    const t=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'});
+    t.on('tileload',()=>{ok=true});t.on('tileerror',fail);t.addTo(m);
+    setTimeout(fail,5000);
+    ROUTE.segs.forEach(({a,b,go})=>L.polyline([[+a.lat,+a.lng],[+b.lat,+b.lng]],{color:'#FF5809',weight:4,opacity:.9,dashArray:go==='walk'?null:'8 8'}).addTo(m));
+    const gs=[];ROUTE.pts.forEach(p=>{let g=gs.find(q=>Math.abs(q.lat-p.lat)<1.5e-4&&Math.abs(q.lng-p.lng)<1.5e-4);if(g){if(!g.labs.includes(p.lab))g.labs.push(p.lab);g.h=g.h||p.h}else gs.push({lat:p.lat,lng:p.lng,labs:[p.lab],h:p.h})});
+    gs.forEach(g=>{const txt=g.h?'H':g.labs.filter(l=>l!=='H').join('·');L.marker([g.lat,g.lng],{icon:L.divIcon({className:'mkwrap',html:'<span class="mk'+(g.h?' h':'')+'">'+txt+'</span>',iconSize:[0,0]})}).addTo(m)});
+    m.fitBounds(L.latLngBounds(ROUTE.pts.map(p=>[p.lat,p.lng])),{padding:[30,30],maxZoom:16});
+  }catch(e){mapFallback()}
+}
+function renderDay(animate){
+  renderDateBar();
+  const day=DATA.days[curDay];const arr=`days.${curDay}.stops`;
+  const map=routeMap(day);
+  const v=$('#dayView');
+  v.innerHTML=`<div class="dayhead"><span class="eyebrow">DAY ${curDay+1}・${esc(day.d)}（${esc(day.w)}）</span>${T('h2',`days.${curDay}.title`,'','當天標題',1)}<div class="meta">${T('b',`days.${curDay}.out`,'','出門時間')}<span>${day.stops.length} 個行程點</span></div></div>${map}
+  <ol class="timeline">${day.stops.map((s,j)=>stopHTML(s,`${arr}.${j}`,arr,j)).join('')}</ol>
+  ${E?`<button class="addbtn" data-act="push" data-arr="${arr}" data-tpl="stop">＋ 新增行程點</button>`:''}`;
+  if(animate){v.classList.remove('bounce');void v.offsetWidth;v.classList.add('bounce')}
+  setTimeout(initLiveMap,0);
+  store.set('seoul-day2',curDay);
+}
+
+/* FOOD */
+function renderFood(){
+  const cats=DATA.food.map(c=>c.cat);
+  if(foodCat!=='全部'&&!cats.includes(foodCat)) foodCat='全部';
+  $('#filters').innerHTML=E?'':['全部',...cats].map(c=>`<button class="btn" data-cat="${esc(c)}" aria-pressed="${c===foodCat}">${esc(c)}</button>`).join('');
+  $('#foodView').innerHTML=DATA.food.map((c,ci)=>({c,ci})).filter(({c})=>E||foodCat==='全部'||c.cat===foodCat).map(({c,ci})=>`
+    <div class="sec-title">${T('h2',`food.${ci}.cat`,'','分類名稱',1)}<span class="count">${c.items.length} 間</span>${E?`<button class="ebtn del" data-act="del" data-arr="food" data-i="${ci}">刪除分類</button>`:''}</div>
+    <div class="foodlist">${c.items.map((f,fi)=>{const p=`food.${ci}.items.${fi}`;return `<article class="box card food">
+      <div class="row">${T('h3',p+'.name','','餐廳名稱',1)}${T('span',p+'.hrs','hrs','營業時間')}</div>
+      ${f.ko!==f.name||E?T('div',p+'.ko','ko','韓文店名（查 NAVER 用）'):''}
+      ${T('p',p+'.note','note','推薦原因')}
+      ${E?T('div',p+'.addr','ko','韓文地址'):(f.addr?`<div class="addr">${ICON.pin}<span>${esc(f.addr)}</span></div>`:'')}
+      ${acts(f,p)}${E?tools(`food.${ci}.items`,fi):''}
+    </article>`}).join('')}
+    ${E?`<button class="addbtn" data-act="push" data-arr="food.${ci}.items" data-tpl="food">＋ 新增餐廳到「${esc(c.cat)}」</button>`:''}</div>`).join('')
+    +(E?`<button class="addbtn" style="margin-top:20px" data-act="push" data-arr="food" data-tpl="cat">＋ 新增分類</button>`:'');
+}
+
+/* LIST */
+function renderList(){
+  const h='hotel.';
+  $('#hotel').innerHTML=`<dl class="kv">
+    <dt>飯店</dt><dd>${T('b',h+'name','','飯店名稱',1)}${T('span',h+'ko','ko','韓文名稱')}</dd>
+    <dt>地址</dt><dd>${T('span',h+'addr','','韓文地址',1)}</dd>
+    <dt>日期</dt><dd>${T('span',h+'stay','','入住退房',1)}</dd>
+    <dt>最近車站</dt><dd>${T('span',h+'station','','車站',1)}</dd>
+    <dt>小提醒</dt><dd>${T('span',h+'tip','','提醒',1)}</dd></dl>${acts(DATA.hotel,'hotel')}`;
+  const done=store.get('seoul-checks2',[]);
+  $('#checksWrap').innerHTML=`<div class="box checks">${DATA.checks.map((c,i)=>E
+    ?`<div class="check" style="cursor:default;display:grid;gap:4px">${T('span',`checks.${i}.text`,'','待辦事項',1)}${tools('checks',i)}</div>`
+    :`<label class="check${done.includes(c.id)?' done':''}"><input type="checkbox" id="chk-${esc(c.id)}" data-cid="${esc(c.id)}"${done.includes(c.id)?' checked':''}><span>${esc(c.text)}</span></label>`).join('')}</div>
+    ${E?'<button class="addbtn" data-act="push" data-arr="checks" data-tpl="check">＋ 新增待辦</button>':''}`;
+  updateProg();
+  $('#phrasesWrap').innerHTML=`<div class="box phrases">${DATA.phrases.map((x,i)=>`<div class="phrase"${E?' style="display:grid"':''}><div>${T('div',`phrases.${i}.ko`,'k','韓文',1)}${T('div',`phrases.${i}.zh`,'zh','中文意思',1)}</div>${E?tools('phrases',i):`<button class="btn" data-phrase="${i}">放大</button>`}</div>`).join('')}</div>
+    ${E?'<button class="addbtn" data-act="push" data-arr="phrases" data-tpl="phrase">＋ 新增句子</button>':''}`;
+  $('#guidesWrap').innerHTML=(DATA.guides||[]).map((g,gi)=>`<div class="box guide">${T('h3',`guides.${gi}.title`,'','標題',1)}<ul>${g.items.map((t,i)=>`<li>${T('span',`guides.${gi}.items.${i}`,'','說明',1)}${E?tools(`guides.${gi}.items`,i):''}</li>`).join('')}</ul>${E?`<button class="addbtn" data-act="push" data-arr="guides.${gi}.items" data-tpl="tip">＋ 新增一行</button>`:''}</div>`).join('');
+  $('#tipsWrap').innerHTML=`<div class="tips"><ul>${DATA.tips.map((t,i)=>`<li>${T('span',`tips.${i}`,'','提醒',1)}${E?tools('tips',i):''}</li>`).join('')}</ul>${E?'<button class="addbtn" data-act="push" data-arr="tips" data-tpl="tip">＋ 新增提醒</button>':''}</div>`;
+}
+function updateProg(){
+  const ids=DATA.checks.map(c=>c.id);const n=store.get('seoul-checks2',[]).filter(x=>ids.includes(x)).length,t=ids.length;
+  $('#progText').textContent=`已完成 ${n} / ${t} 項`;$('#progCount').textContent=`${n} / ${t}`;
+  $('#progBar').style.width=(t?n/t*100:0)+'%';
+}
+
+function renderAll(animate){renderHome();renderDay(animate);renderFood();renderList()}
+
+function showTab(t){
+  ['home','plan','food','list'].forEach(x=>{$('#view-'+x).hidden=x!==t;$('#tab-'+x).setAttribute('aria-selected',x===t)});
+  store.set('seoul-tab2',t);window.scrollTo({top:0,behavior:'instant'});
+  if(t==='plan')setTimeout(initLiveMap,0);
+}
+function openModal(ko,addr,zh,phrase){
+  $('#mLead').textContent=phrase?'放大給對方看':'請給司機看・운전기사님께 보여주세요';
+  $('#mSay').hidden=!!phrase;$('#mBig').textContent=ko;$('#mAddr').textContent=addr||'';$('#mZh').textContent=zh||'';
+  $('#modal').hidden=false;$('#mClose').focus();
+}
+
+/* templates for new rows */
+const TPL={
+  stop:()=>({t:'',go:'walk',name:'',ko:'',addr:'',note:'',flag:'',must:false}),
+  food:()=>({name:'',ko:'',addr:'',hrs:'',note:''}),
+  cat:()=>({cat:'新分類',items:[]}),
+  check:()=>({id:'c'+Date.now().toString(36),text:''}),
+  phrase:()=>({zh:'',ko:''}),
+  tip:()=>''
+};
+
+/* editing */
+function setEdit(on){
+  E=on;document.body.classList.toggle('editing',on);$('#editBar').hidden=!on;
+  $('#editMsg').textContent='編輯中：點虛線框的文字直接修改，改完按「儲存」。';
+  $('#editSave').disabled=false;renderAll(false);
+}
+function markDirty(){dirty=true}
+function buildHtml(){
+  const rs=document.head&&document.head.querySelector('style');
+  const reset=rs?rs.textContent:RESET_FALLBACK;
+  const css=document.getElementById('css').textContent;
+  const shell=document.getElementById('shell').innerHTML;
+  const app=document.getElementById('app').textContent;
+  const json=JSON.stringify(DATA).replace(/</g,'\\u003c');
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+reset+'</style></head><body>'
+    +HEAD_BITS+'<style id="css">'+css+'</style>\n<template id="shell">'+shell+'</template>\n<div id="root"></div>\n<script type="application/json" id="trip-data">'+json+'<\/script>\n<script id="app">'+app+'<\/script>\n</body></html>';
+}
+async function save(){
+  if(!art){$('#editMsg').textContent='目前無法儲存，請在 Claude 裡打開這個頁面再試。';return}
+  if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
+  $('#editSave').disabled=true;$('#editMsg').textContent='儲存中…';
+  try{await art.publish(buildHtml());dirty=false;$('#editMsg').textContent='已儲存，頁面會自動更新。'}
+  catch(err){
+    const c=err&&err.code;
+    $('#editMsg').textContent=c==='conflict'?'有人剛更新了頁面，這次的修改沒存到，請重新整理後再改。'
+      :(c==='not_writer'||c==='not_granted')?'你沒有編輯這個頁面的權限。'
+      :c==='rate_limited'?'儲存太頻繁了，等一下再按儲存。'
+      :'儲存失敗，請稍後再試一次。';
+    $('#editSave').disabled=c==='conflict'||c==='not_writer'||c==='not_granted';
+  }
+}
+
+/* events */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab]');if(t){showTab(t.dataset.tab);return}
+  const g=e.target.closest('[data-goday]');if(g){curDay=+g.dataset.goday;renderDay(true);showTab('plan');return}
+  const d=e.target.closest('[data-day]');if(d){curDay=+d.dataset.day;renderDay(true);return}
+  const c=e.target.closest('[data-cat]');if(c){foodCat=c.dataset.cat;renderFood();return}
+  const dr=e.target.closest('[data-drv]');if(dr){const o=getP(dr.dataset.drv);openModal(o.ko,o.addr,o.name);return}
+  const ph=e.target.closest('[data-phrase]');if(ph){const o=DATA.phrases[+ph.dataset.phrase];openModal(o.ko,'',o.zh,true);return}
+  const a=e.target.closest('[data-act]');
+  if(a){
+    const act=a.dataset.act;
+    if(act==='move'||act==='del'){const arr=getP(a.dataset.arr),i=+a.dataset.i;
+      if(act==='del') arr.splice(i,1); else {const j=i+(+a.dataset.dir);if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]]}}
+    else if(act==='push') getP(a.dataset.arr).push(TPL[a.dataset.tpl]());
+    else if(act==='altadd') getP(a.dataset.p).alt={name:'',ko:'',addr:'',note:''};
+    else if(act==='altdel') delete getP(a.dataset.p).alt;
+    markDirty();const y=window.scrollY;renderAll(false);window.scrollTo(0,y);return;
+  }
+  if(e.target.id==='editBtn'){setEdit(true);return}
+  if(e.target.id==='editCancel'){DATA=JSON.parse(ORIG);dirty=false;setEdit(false);return}
+  if(e.target.id==='editSave'){save();return}
+  if(e.target.id==='mClose'||e.target.id==='modal')$('#modal').hidden=true;
+});
+document.addEventListener('input',e=>{
+  const k=e.target.dataset&&e.target.dataset.k;if(!k||e.target.tagName==='SELECT'||e.target.type==='checkbox')return;
+  setP(k,e.target.textContent.replace(/\s+\n/g,'\n').trim());markDirty();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')$('#modal').hidden=true;
+  if(e.key==='Enter'&&e.target.isContentEditable&&!/note$/.test(e.target.dataset.k||'')){e.preventDefault();e.target.blur()}
+});
+document.addEventListener('change',e=>{
+  const k=e.target.dataset&&e.target.dataset.k;
+  if(k){setP(k,e.target.type==='checkbox'?e.target.checked:e.target.value);markDirty();const y=window.scrollY;renderDay(false);window.scrollTo(0,y);return}
+  if(e.target.dataset&&e.target.dataset.cid){const id=e.target.dataset.cid;let done=store.get('seoul-checks2',[]);
+    done=e.target.checked?[...new Set([...done,id])]:done.filter(x=>x!==id);store.set('seoul-checks2',done);
+    e.target.closest('.check').classList.toggle('done',e.target.checked);updateProg()}
+});
+
+/* init */
+const now=new Date();
+const ti=DATA.days.findIndex(d=>{const [m,dd]=String(d.d).split('/').map(Number);return now.getFullYear()===2026&&now.getMonth()+1===m&&now.getDate()===dd});
+curDay=ti>=0?ti:Math.min(Math.max(+store.get('seoul-day2',0)||0,0),DATA.days.length-1);
+renderAll(false);
+const h=location.hash.slice(1);
+showTab(['home','plan','food','list'].includes(h)?h:store.get('seoul-tab2','home'));
+
+async function initEdit(){
+  if(!window.claude||!window.claude.use) return false;
+  try{art=await window.claude.use('artifact')}catch(e){art=null}
+  if(!art) return true;
+  let ok=true;
+  try{const u=await window.claude.use('user');if(u) ok=await u.canEdit()}catch(e){}
+  if(ok) $('#editBtn').hidden=false;
+  return true;
+}
+initEdit().then(r=>{if(!r) window.addEventListener('load',()=>{initEdit()},{once:true})});
+})();
+</script>
+</body></html>
